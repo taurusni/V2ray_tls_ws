@@ -32,7 +32,7 @@ shell_version="1.0.0.0"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
-v2ray_conf_dir="/etc/v2ray"
+v2ray_conf_dir="/usr/local/etc/v2ray"
 nginx_conf_dir="/etc/nginx/conf/conf.d"
 v2ray_conf="${v2ray_conf_dir}/config.json"
 nginx_conf="${nginx_conf_dir}/v2ray.conf"
@@ -53,7 +53,6 @@ nginx_version="1.18.0"
 openssl_version="1.1.1g"
 jemalloc_version="5.2.1"
 old_config_status="off"
-# v2ray_plugin_version="$(wget -qO- "https://github.com/shadowsocks/v2ray-plugin/tags" | grep -E "/shadowsocks/v2ray-plugin/releases/tag/" | head -1 | sed -r 's/.*tag\/v(.+)\">.*/\1/')"
 
 #移动旧版本配置信息 对小于 1.1.0 版本适配
 [[ -f "/etc/v2ray/vmess_qr.json" ]] && mv /etc/v2ray/vmess_qr.json $v2ray_qr_config_file
@@ -202,24 +201,15 @@ dependency_install() {
         ${INS} -y install libpcre3 libpcre3-dev zlib1g-dev dbus
     fi
 
-    #    ${INS} -y install rng-tools
-    #    judge "rng-tools 安装"
-
     ${INS} -y install haveged
-    #    judge "haveged 安装"
-
-    #    sed -i -r '/^HRNGDEVICE/d;/#HRNGDEVICE=\/dev\/null/a HRNGDEVICE=/dev/urandom' /etc/default/rng-tools
+    judge "haveged 安装"
 
     if [[ "${ID}" == "centos" ]]; then
-        #       systemctl start rngd && systemctl enable rngd
-        #       judge "rng-tools 启动"
         systemctl start haveged && systemctl enable haveged
-        #       judge "haveged 启动"
+        judge "haveged 启动"
     else
-        #       systemctl start rng-tools && systemctl enable rng-tools
-        #       judge "rng-tools 启动"
         systemctl start haveged && systemctl enable haveged
-        #       judge "haveged 启动"
+        judge "haveged 启动"
     fi
 }
 basic_optimization() {
@@ -317,13 +307,11 @@ v2ray_install() {
     mkdir -p /root/v2ray
     cd /root/v2ray || exit
     wget -N --no-check-certificate https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh
-    sed -i "s|DAT_PATH=\${DAT_PATH:-/usr/local/share/v2ray}|DAT_PATH=/usr/local/lib/v2ray/|" install-release.sh
-    sed -i "s|JSON_PATH=\${JSON_PATH:-/usr/local/etc/v2ray}|JSON_PATH=/etc/v2ray/|" install-release.sh
 
     if [[ -f install-release.sh  ]]; then
         rm -rf $v2ray_systemd_file
         systemctl daemon-reload
-        bash install-release.sh --force
+        bash install-release.sh
         judge "安装 V2ray"
     else
         echo -e "${Error} ${RedBG} V2ray 安装文件下载失败，请检查下载地址是否可用 ${Font}"
@@ -495,7 +483,7 @@ acme() {
     fi
 }
 v2ray_conf_add_tls() {
-    cd /etc/v2ray || exit
+    cd /usr/local/etc/v2ray || exit
     wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/tls/config.json -O config.json
     modify_path
     modify_alterid
@@ -503,7 +491,7 @@ v2ray_conf_add_tls() {
     modify_UUID
 }
 v2ray_conf_add_h2() {
-    cd /etc/v2ray || exit
+    cd /usr/local/etc/v2ray || exit
     wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/http2/config.json -O config.json
     modify_path
     modify_alterid
@@ -539,7 +527,7 @@ nginx_conf_add() {
         ssl_ciphers           TLS13-AES-256-GCM-SHA384:TLS13-CHACHA20-POLY1305-SHA256:TLS13-AES-128-GCM-SHA256:TLS13-AES-128-CCM-8-SHA256:TLS13-AES-128-CCM-SHA256:EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+ECDSA+AES128:EECDH+aRSA+AES128:RSA+AES128:EECDH+ECDSA+AES256:EECDH+aRSA+AES256:RSA+AES256:EECDH+ECDSA+3DES:EECDH+aRSA+3DES:RSA+3DES:!MD5;
         server_name           serveraddr.com;
         index index.html index.htm;
-        root  /home/wwwroot/3DCEList;
+        root  /home/wwwroot;
         error_page 400 = /400.html;
 
         # Config for 0-RTT in TLSv1.3
@@ -580,7 +568,6 @@ EOF
 
 start_process_systemd() {
     systemctl daemon-reload
-    chown -R root.root /var/log/v2ray/
     if [[ "$shell_mode" != "h2" ]]; then
         systemctl restart nginx
         judge "Nginx 启动"
@@ -622,7 +609,8 @@ nginx_process_disabled() {
 #    judge "rc.local 配置"
 #}
 acme_cron_update() {
-    wget -N -P /usr/bin --no-check-certificate "https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/dev/ssl_update.sh"
+    wget -N -P /usr/bin --no-check-certificate "https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/ssl_update.sh"
+
     if [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
       if [[ "${ID}" == "centos" ]]; then
           #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
@@ -815,8 +803,8 @@ ssl_update_manuel() {
     "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc
 }
 bbr_boost_sh() {
-    [ -f "tcp.sh" ] && rm -rf ./tcp.sh
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
+    [ -f "bbr.sh" ] && rm -rf ./bbr.sh
+    wget -N --no-check-certificate "https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/bbr.sh" && chmod +x bbr.sh && ./bbr.sh
 }
 mtproxy_sh() {
     echo -e "${Error} ${RedBG} 功能维护，暂不可用 ${Font}"
@@ -885,6 +873,7 @@ install_v2ray_ws_tls() {
     start_process_systemd
     enable_process_systemd
     acme_cron_update
+    restart_firewall
 }
 install_v2_h2() {
     is_root
@@ -906,8 +895,20 @@ install_v2_h2() {
     show_information
     start_process_systemd
     enable_process_systemd
+    restart_firewall
 
 }
+
+restart_firewall() {
+    systemctl enable firewalld
+    systemctl start firewalld
+    echo -e "${OK} ${GreenBG} firewalld 已开启 ${Font}"
+
+    systemctl enable ufw
+    systemctl start ufw
+    echo -e "${OK} ${GreenBG} ufw 已开启 ${Font}"
+}
+
 update_sh() {
     ol_version=$(curl -L -s https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/install.sh | grep "shell_version=" | head -1 | awk -F '=|"' '{print $3}')
     echo "$ol_version" >$version_cmp
@@ -976,7 +977,7 @@ menu() {
     echo -e "${Green}9.${Font}  查看 实时错误日志"
     echo -e "${Green}10.${Font} 查看 V2Ray 配置信息"
     echo -e "—————————————— 其他选项 ——————————————"
-    echo -e "${Green}11.${Font} 安装 4合1 bbr 锐速安装脚本"
+    echo -e "${Green}11.${Font} 安装 bbr"
     echo -e "${Green}12.${Font} 安装 MTproxy(支持TLS混淆)"
     echo -e "${Green}13.${Font} 证书 有效期更新"
     echo -e "${Green}14.${Font} 卸载 V2Ray"
@@ -999,9 +1000,7 @@ menu() {
         ;;
     3)
         wget -N --no-check-certificate https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh
-        sed -i "s|DAT_PATH=\${DAT_PATH:-/usr/local/share/v2ray}|DAT_PATH=/usr/local/lib/v2ray/|" install-release.sh
-        sed -i "s|JSON_PATH=\${JSON_PATH:-/usr/local/etc/v2ray}|JSON_PATH=/etc/v2ray/|" install-release.sh
-        bash install-release.sh --force
+        bash install-release.sh
         ;;
     4)
         read -rp "请输入UUID:" UUID
