@@ -28,7 +28,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
 # 版本
-shell_version="1.0.0.0"
+shell_version="1.0.1.0"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
@@ -49,8 +49,8 @@ v2ray_access_log="/var/log/v2ray/access.log"
 v2ray_error_log="/var/log/v2ray/error.log"
 amce_sh_file="/root/.acme.sh/acme.sh"
 ssl_update_file="/usr/bin/ssl_update.sh"
-nginx_version="1.18.0"
-openssl_version="1.1.1g"
+nginx_version="1.20.1"
+openssl_version="1.1.1k"
 jemalloc_version="5.2.1"
 old_config_status="off"
 
@@ -211,6 +211,8 @@ dependency_install() {
         systemctl start haveged && systemctl enable haveged
         judge "haveged 启动"
     fi
+
+    mkdir -p /usr/local/bin >/dev/null 2>&1
 }
 basic_optimization() {
     # 最大文件打开数
@@ -308,7 +310,7 @@ v2ray_install() {
     cd /root/v2ray || exit
     wget -N --no-check-certificate https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh
 
-    if [[ -f install-release.sh  ]]; then
+    if [[ -f install-release.sh ]]; then
         rm -rf $v2ray_systemd_file
         systemctl daemon-reload
         bash install-release.sh
@@ -417,7 +419,7 @@ ssl_install() {
     judge "安装 SSL 证书生成脚本"
 }
 domain_check() {
-    read -rp "请输入你的域名信息(eg:www.v2raytlsws.com):" domain
+    read -rp "请输入你的域名信息(eg:www.v2raytlsws.tk):" domain
     domain_ip=$(ping "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
     echo -e "${OK} ${GreenBG} 正在获取 公网ip 信息，请耐心等待 ${Font}"
     local_ip=$(curl https://api-ipv4.ip.sb/ip)
@@ -458,6 +460,7 @@ port_exist_check() {
     fi
 }
 acme() {
+    "$HOME"/.acme.sh/acme.sh --set-default-ca --server letsencrypt
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force --test; then
         echo -e "${OK} ${GreenBG} SSL 证书测试签发成功，开始正式签发 ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
@@ -529,13 +532,11 @@ nginx_conf_add() {
         index index.html index.htm;
         root  /home/wwwroot;
         error_page 400 = /400.html;
-
         # Config for 0-RTT in TLSv1.3
         ssl_early_data on;
         ssl_stapling on;
         ssl_stapling_verify on;
         add_header Strict-Transport-Security "max-age=31536000";
-
         location /ray/
         {
         proxy_redirect off;
@@ -547,7 +548,6 @@ nginx_conf_add() {
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host \$http_host;
-
         # Config for 0-RTT in TLSv1.3
         proxy_set_header Early-Data \$ssl_early_data;
         }
@@ -748,7 +748,6 @@ nginx_systemd() {
 [Unit]
 Description=The NGINX HTTP and reverse proxy server
 After=syslog.target network.target remote-fs.target nss-lookup.target
-
 [Service]
 Type=forking
 PIDFile=/etc/nginx/logs/nginx.pid
@@ -757,7 +756,6 @@ ExecStart=/etc/nginx/sbin/nginx -c ${nginx_dir}/conf/nginx.conf
 ExecReload=/etc/nginx/sbin/nginx -s reload
 ExecStop=/bin/kill -s QUIT \$MAINPID
 PrivateTmp=true
-
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -812,7 +810,6 @@ mtproxy_sh() {
 
 uninstall_all() {
     stop_process_systemd
-    [[ -f $nginx_systemd_file ]] && rm -f $nginx_systemd_file
     [[ -f $v2ray_systemd_file ]] && rm -f $v2ray_systemd_file
     [[ -d $v2ray_bin_dir ]] && rm -rf $v2ray_bin_dir
     [[ -d $v2ray_bin_dir_old ]] && rm -rf $v2ray_bin_dir_old
@@ -822,6 +819,7 @@ uninstall_all() {
         case $uninstall_nginx in
         [yY][eE][sS] | [yY])
             rm -rf $nginx_dir
+            rm -rf $nginx_systemd_file
             echo -e "${OK} ${Green} 已卸载 Nginx ${Font}"
             ;;
         *) ;;
@@ -830,8 +828,18 @@ uninstall_all() {
     fi
     [[ -d $v2ray_conf_dir ]] && rm -rf $v2ray_conf_dir
     [[ -d $web_dir ]] && rm -rf $web_dir
+    echo -e "${OK} ${Green} 是否卸载acme.sh及证书 [Y/N]? ${Font}"
+    read -r uninstall_acme
+    case $uninstall_acme in
+    [yY][eE][sS] | [yY])
+      /root/.acme.sh/acme.sh --uninstall
+      rm -rf /root/.acme.sh
+      rm -rf /data/*
+      ;;
+    *) ;;
+    esac
     systemctl daemon-reload
-    echo -e "${OK} ${GreenBG} 已卸载，SSL证书文件已保留 ${Font}"
+    echo -e "${OK} ${GreenBG} 已卸载 ${Font}"
 }
 delete_tls_key_and_crt() {
     [[ -f $HOME/.acme.sh/acme.sh ]] && /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
