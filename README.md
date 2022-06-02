@@ -1,6 +1,7 @@
 ## V2Ray 基于 Nginx 的 vmess+ws+tls 一键安装脚本
 
 感谢[@wulabing](https://github.com/wulabing/V2Ray_ws-tls_bash_onekey)分享的脚本。
+感谢[@Loyalsoldier](https://github.com/Loyalsoldier/v2ray-rules-dat#geositedat-1)分享的数据和配置。
 
 本脚本使用[官方安装脚本](https://github.com/v2fly/fhs-install-v2ray)安装V2ray并基于[VMess-fAEAD-disable](https://github.com/KukiSa/VMess-fAEAD-disable)保留了MD5兼容
 
@@ -69,6 +70,3 @@ Nginx 目录
 ### 链接
 - [acme.sh](https://github.com/acmesh-official/acme.sh)
 - [客户端](https://itlanyan.com/v2ray-clients-download/)
-
-
-

@@ -22,7 +22,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
 # 版本
-shell_version="1.1.0"
+shell_version="2.0.0"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
@@ -343,7 +343,7 @@ v2ray_install() {
     rm -rf /root/v2ray
 }
 
-v2ray_update_dat{
+v2ray_update_dat() {
     mkdir -p "${v2ray_dat_path}"
     cd "${v2ray_dat_path}" || exit
     rm -f *.dat
@@ -948,26 +948,26 @@ menu() {
     echo -e "—————————————— 安装向导 ——————————————"""
     echo -e "${Green}0.${Font}  升级 脚本"
     echo -e "${Green}1.${Font}  安装 V2Ray (Nginx+ws+tls)"
-    echo -e "${Green}3.${Font}  升级 V2Ray core"
+    echo -e "${Green}2.${Font}  升级 V2Ray core"
     echo -e "—————————————— 配置变更 ——————————————"
-    echo -e "${Green}4.${Font}  变更 UUID"
-    echo -e "${Green}5.${Font}  变更 alterid"
-    echo -e "${Green}6.${Font}  变更 port"
-    echo -e "${Green}7.${Font}  变更 TLS 版本(仅ws+tls有效)"
-    echo -e "${Green}8.${Font}  变更伪装路径"
+    echo -e "${Green}3.${Font}  变更 UUID"
+    echo -e "${Green}4.${Font}  变更 alterid"
+    echo -e "${Green}5.${Font}  变更 port"
+    echo -e "${Green}6.${Font}  变更 TLS 版本(仅ws+tls有效)"
+    echo -e "${Green}7.${Font}  变更伪装路径"
     echo -e "—————————————— 查看信息 ——————————————"
-    echo -e "${Green}9.${Font}  查看 实时访问日志"
-    echo -e "${Green}10.${Font}  查看 实时错误日志"
-    echo -e "${Green}11.${Font} 查看 V2Ray 配置信息"
+    echo -e "${Green}8.${Font}  查看 实时访问日志"
+    echo -e "${Green}9.${Font}  查看 实时错误日志"
+    echo -e "${Green}10.${Font} 查看 V2Ray 配置信息"
     echo -e "—————————————— 其他选项 ——————————————"
-    echo -e "${Green}12.${Font} 安装 bbr"
-    echo -e "${Green}13.${Font} 安装 MTproxy(支持TLS混淆)"
-    echo -e "${Green}14.${Font} 证书 有效期更新"
-    echo -e "${Green}15.${Font} 卸载 V2Ray"
-    echo -e "${Green}16.${Font} 更新 证书crontab计划任务"
-    echo -e "${Green}17.${Font} 清空 证书遗留文件"
-    echo -e "${Green}18.${Font} 更新V2ray Dat"
-    echo -e "${Green}19.${Font} 退出 \n"
+    echo -e "${Green}11.${Font} 安装 bbr"
+    echo -e "${Green}12.${Font} 安装 MTproxy(支持TLS混淆)"
+    echo -e "${Green}13.${Font} 证书 有效期更新"
+    echo -e "${Green}14.${Font} 卸载 V2Ray"
+    echo -e "${Green}15.${Font} 更新 证书crontab计划任务"
+    echo -e "${Green}16.${Font} 清空 证书遗留文件"
+    echo -e "${Green}17.${Font} 更新V2ray Dat"
+    echo -e "${Green}18.${Font} 退出 \n"
 
     read -rp "请输入数字：" menu_num
     case $menu_num in
@@ -978,41 +978,41 @@ menu() {
         shell_mode="ws"
         install_v2ray_ws_tls
         ;;
-    3)
+    2)
         bash <(curl -L -s https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/${github_branch}/install-release.sh)
         ;;
-    4)
+    3)
         read -rp "请输入UUID:" UUID
         modify_UUID
         start_process_systemd
         ;;
-    5)
+    4)
         read -rp "请输入alterID:" alterID
         modify_alterid
         start_process_systemd
         ;;
-    6)
+    5)
         read -rp "请输入连接端口:" port
         if grep -q "ws" $v2ray_qr_config_file; then
             modify_nginx_port
         fi
         start_process_systemd
         ;;
-    7)
+    6)
         tls_type
         ;;
-    8)
+    7)
         read -rp "请输入伪装路径(注意！不需要加斜杠 eg:ray):" camouflage_path
         modify_camouflage_path
         start_process_systemd
         ;;
-    9)
+    8)
         show_access_log
         ;;
-    10)
+    9)
         show_error_log
         ;;
-    11)
+    10)
         basic_information
         if [[ $shell_mode == "ws" ]]; then
             vmess_link_image_choice
@@ -1021,7 +1021,7 @@ menu() {
         fi
         show_information
         ;;
-    12)
+    11)
         read -rp "安转默认bbr还是增强版(增强版可能有兼容性问题) - 默认Y" bbr_version
         [[ -z ${bbr_version} ]] && bbr_version="Y"
         case $bbr_version in
@@ -1033,29 +1033,29 @@ menu() {
             ;;
         esac
         ;;
-    13)
+    12)
         mtproxy_sh
         ;;
-    14)
+    13)
         stop_process_systemd
         ssl_update_manuel
         start_process_systemd
         ;;
-    15)
+    14)
         source '/etc/os-release'
         uninstall_all
         ;;
-    16)
+    15)
         acme_cron_update
         ;;
-    17)
+    16)
         delete_tls_key_and_crt
         ;;
-    18)
+    17)
         v2ray_update_dat
         start_process_systemd
         ;;
-    19)
+    18)
         exit 0
         ;;
     *)
