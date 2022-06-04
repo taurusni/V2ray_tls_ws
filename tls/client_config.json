@@ -96,22 +96,14 @@
                 "network": "ws",
                 "security": "tls",
                 "wsSettings": {
-                    "acceptProxyProtocol": false,
                     "path": "/ray",
                     "headers": {
                         "host": "test.domain"
-                    },
-                    "maxEarlyData": 1024,
-                    "useBrowserForwarding": true,
-                    "earlyDataHeaderName": ""
+                    }
                 },
                 "tlsSettings": {
                     "serverName": "test.domain",
-                    "allowInsecure": false,
-                    "disableSystemRoot": false,
-                    "certificates": [],
-                    "verifyClientCertificate": false,
-                    "pinnedPeerCertificateChainSha256": ""
+                    "allowInsecure": true
                 }
             },
             "mux": {

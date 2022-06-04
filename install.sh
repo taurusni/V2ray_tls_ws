@@ -245,6 +245,7 @@ port_alterid_set() {
 
 modify_path() {
     sed -i "/\"path\"/c \\\t  \"path\":\"${camouflage}\"" ${v2ray_conf}
+    sed -i "99c \"path\": \"${camouflage},\"" "${v2ray_client_config_file}"
     judge "V2ray 伪装路径 修改"
 }
 
@@ -260,8 +261,8 @@ modify_alterid() {
     fi
 
     sed -i "/\"alterId\"/c \\\t  \"alterId\":${alterID}" ${v2ray_conf}
+    sed -i "86c \"alterId\": ${alterID}," "${v2ray_client_config_file}"
     judge "V2ray alterid 修改"
-    [ -f ${v2ray_client_config_file} ] && sed -i "/\"aid\"/c \\  \"aid\": \"${alterID}\"," ${v2ray_client_config_file}
     echo -e "${OK} ${GreenBG} alterID:${alterID} ${Font}"
 }
 
@@ -274,16 +275,16 @@ modify_inbound_port() {
 modify_UUID() {
     [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
     sed -i "/\"id\"/c \\\t  \"id\":\"${UUID}\"," ${v2ray_conf}
+    sed -i "85c \"id\": \"${UUID}\"," "${v2ray_client_config_file}"
     judge "V2ray UUID 修改"
-    [ -f ${v2ray_client_config_file} ] && sed -i "/\"id\"/c \\  \"id\": \"${UUID}\"," ${v2ray_client_config_file}
     echo -e "${OK} ${GreenBG} UUID:${UUID} ${Font}"
 }
 
 modify_nginx_port() {
     sed -i "/ssl http2;$/c \\\tlisten ${port} ssl http2;" ${nginx_conf}
     sed -i "3c \\\tlisten [::]:${port} http2;" ${nginx_conf}
+    sed -i "82c \"port\": ${port}," "${v2ray_client_config_file}"
     judge "V2ray port 修改"
-    [ -f ${v2ray_client_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${v2ray_client_config_file}
     echo -e "${OK} ${GreenBG} 端口号:${port} ${Font}"
 }
 
@@ -526,6 +527,7 @@ acme() {
 v2ray_conf_add_tls() {
     cd "${v2ray_conf_dir}" || exit
     wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/tls/server_config.json -O config.json
+    wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/tls/client_config.json -O "${v2ray_client_config_file}"
     modify_path
     modify_alterid
     modify_inbound_port
@@ -617,15 +619,6 @@ acme_cron_update() {
       fi
     fi
     judge "cron 计划任务更新"
-}
-
-vmess_client_config_tls_ws() {
-    wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/tls/client_config.json -O "${v2ray_client_config_file}"
-    sed -i "/\"id\": \"123456789\"/\"id\": \"${UUID}\"," "${v2ray_client_config_file}"
-    sed -i "/\"port: 123456789\"/\"port\": ${PORT}," "${v2ray_client_config_file}"
-    sed -i "/\"alterId: 12345\"/\"alterId\": ${alterID}," "${v2ray_client_config_file}"
-    sed -i "/\"path\": \"/ray\"/\"path\": \"${camouflage},\"" "${v2ray_client_config_file}"
-    sed -i "/test.domain/${domain}/g" "${v2ray_client_config_file}"
 }
 
 info_extraction() {
@@ -796,7 +789,6 @@ install_v2ray_ws_tls() {
     web_camouflage
     ssl_judge_and_install
     nginx_systemd
-    vmess_client_config_tls_ws
     tls_type
     start_process_systemd
     enable_process_systemd
@@ -855,9 +847,9 @@ maintain() {
 
 modify_camouflage_path() {
     [[ -z ${camouflage_path} ]] && camouflage_path=1
-    sed -i "/location/c \\\tlocation \/${camouflage_path}\/" ${nginx_conf}          #Modify the camouflage path of the nginx configuration file
-    sed -i "/\"path\"/c \\\t  \"path\": \"\/${camouflage_path}\/\"" ${v2ray_conf}    #Modify the camouflage path of the v2ray server configuration file
-    sed -i "/\"path\"/c \\\t  \"path\": \"\/${camouflage_path}\/,\"" ${v2ray_client_config_file}    #Modify the camouflage path of the v2ray client configuration file
+    sed -i "/location/c \\\tlocation \/${camouflage_path}\/" ${nginx_conf}          # Modify the camouflage path of the nginx configuration file
+    sed -i "/\"path\"/c \\\t  \"path\": \"\/${camouflage_path}\/\"" ${v2ray_conf}   # Modify the camouflage path of the v2ray server configuration file
+    sed -i "99c \"path\": \"${camouflage},\"" "${v2ray_client_config_file}"        # Modify the camouflage path of the v2ray client configuration file
     judge "V2ray camouflage path modified"
 }
 
