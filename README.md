@@ -12,7 +12,9 @@ Vmess+websocket+TLS+Nginx+Website
 wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/master/install.sh" && chmod +x install.sh && bash install.sh
 ```
 
-**注意**: 脚本默认使用最新的Core, 请注意客户端 Core 的同步更新，需要保证客户端内核版本 >= 服务端内核版本
+**注意**: 
+1. 脚本默认使用最新的Core, 请注意客户端 Core 的同步更新，需要保证客户端内核版本 >= 服务端内核版本
+2. 确保入站80端口和自己所需的端口已经打开。比如使用微软的云服务，NSG需要允许所需端口。出站端口按需设定
 
 ### 更新日志
 
@@ -27,8 +29,7 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 ### 查看客户端配置
 
 ```
-sudo su -
-less ~/v2ray_info.inf
+less /usr/local/client_config.json
 ```
 
 ### 启动方式

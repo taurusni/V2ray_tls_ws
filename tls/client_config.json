@@ -78,8 +78,8 @@
             "settings": {
                 "vnext": [
                     {
-                        "address": "www.v2raytlsws.tk",
-                        "port": 443,
+                        "address": "test.domain",
+                        "port": 123456789,
                         "users": [
                             {
                                 "id": "123456789",
@@ -99,14 +99,14 @@
                     "acceptProxyProtocol": false,
                     "path": "/ray",
                     "headers": {
-                        "host": "www.v2raytlsws.tk"
+                        "host": "test.domain"
                     },
                     "maxEarlyData": 1024,
                     "useBrowserForwarding": true,
                     "earlyDataHeaderName": ""
                 },
                 "tlsSettings": {
-                    "serverName": "www.v2raytlsws.tk",
+                    "serverName": "test.domain",
                     "allowInsecure": false,
                     "disableSystemRoot": false,
                     "certificates": [],

@@ -34,8 +34,7 @@ nginx_dir="/etc/nginx"
 web_dir="/home/wwwroot"
 nginx_openssl_src="/usr/local/src"
 v2ray_bin_dir="/usr/local/bin"
-v2ray_info_file="$HOME/v2ray_info.inf"
-v2ray_qr_config_file="/usr/local/vmess_qr.json"
+v2ray_client_config_file="/usr/local/client_config.json"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 v2ray_systemd_file="/etc/systemd/system/v2ray.service"
 v2ray_access_log="/var/log/v2ray/access.log"
@@ -49,7 +48,6 @@ ssl_update_file="/usr/local/bin/ssl_update.sh"
 nginx_version="1.20.1"
 openssl_version="1.1.1k"
 jemalloc_version="5.2.1"
-old_config_status="off"
 
 #简易随机数
 random_num=$((RANDOM%12+4))
@@ -86,13 +84,17 @@ check_system() {
 
     $INS install dbus
 
-    systemctl stop firewalld
-    systemctl disable firewalld
-    echo -e "${OK} ${GreenBG} firewalld 已关闭 ${Font}"
+    if [[ $(which firewalld) ]]; then
+        systemctl stop firewalld
+        systemctl disable firewalld
+        echo -e "${OK} ${GreenBG} firewalld 已关闭 ${Font}"
+    fi
 
-    systemctl stop ufw
-    systemctl disable ufw
-    echo -e "${OK} ${GreenBG} ufw 已关闭 ${Font}"
+    if [[ $(which ufw) ]]; then
+        systemctl stop ufw
+        systemctl disable ufw
+        echo -e "${OK} ${GreenBG} ufw 已关闭 ${Font}"
+    fi
 }
 
 is_root() {
@@ -226,36 +228,27 @@ basic_optimization() {
 }
 
 port_alterid_set() {
-    if [[ "on" != "$old_config_status" ]]; then
-        read -rp "请输入连接端口（default:443）:" port
-        [[ -z ${port} ]] && port="443"
-        echo -e "${INFO} ${GreenGB} 是否开启VMess MD5 认证信息兼容 (y/n) ${Font}"
-        read -r enableMD5
-        case $enableMD5 in
-        [yY][eE][sS] | [yY])
-            read -rp "请输入alterID（default:2 仅允许填非0数字）:" alterID
-            [[ -z ${alterID} ]] && alterID="2"
-            ;;
-        *)
-            alterID="0"
-            ;;
-        esac
-    fi
+    read -rp "请输入连接端口（default:443）:" port
+    [[ -z ${port} ]] && port="443"
+    echo -e "${INFO} ${GreenGB} 是否开启VMess MD5 认证信息兼容 (y/n) ${Font}"
+    read -r enableMD5
+    case $enableMD5 in
+    [yY][eE][sS] | [yY])
+        read -rp "请输入alterID（default:2 仅允许填非0数字）:" alterID
+        [[ -z ${alterID} ]] && alterID="2"
+        ;;
+    *)
+        alterID="0"
+        ;;
+    esac
 }
 
 modify_path() {
-    if [[ "on" == "$old_config_status" ]]; then
-        camouflage="$(grep '\"path\"' $v2ray_qr_config_file | awk -F '"' '{print $4}')"
-    fi
     sed -i "/\"path\"/c \\\t  \"path\":\"${camouflage}\"" ${v2ray_conf}
     judge "V2ray 伪装路径 修改"
 }
 
 modify_alterid() {
-    if [[ "on" == "$old_config_status" ]]; then
-        alterID="$(grep '\"aid\"' $v2ray_qr_config_file | awk -F '"' '{print $4}')"
-    fi
-
     # https://github.com/KukiSa/VMess-fAEAD-disable
     if [[ "${alterID}" -eq 0 ]]; then
         sed -i '/Environment="V2RAY_VMESS_AEAD_FORCED=false"/d' "${v2ray_systemd_file}"
@@ -268,14 +261,11 @@ modify_alterid() {
 
     sed -i "/\"alterId\"/c \\\t  \"alterId\":${alterID}" ${v2ray_conf}
     judge "V2ray alterid 修改"
-    [ -f ${v2ray_qr_config_file} ] && sed -i "/\"aid\"/c \\  \"aid\": \"${alterID}\"," ${v2ray_qr_config_file}
+    [ -f ${v2ray_client_config_file} ] && sed -i "/\"aid\"/c \\  \"aid\": \"${alterID}\"," ${v2ray_client_config_file}
     echo -e "${OK} ${GreenBG} alterID:${alterID} ${Font}"
 }
 
 modify_inbound_port() {
-    if [[ "on" == "$old_config_status" ]]; then
-        port="$(info_extraction '\"port\"')"
-    fi
     PORT=$((RANDOM + 10000))
     sed -i "/\"port\"/c  \    \"port\":${PORT}," ${v2ray_conf}
     judge "V2ray inbound_port 修改"
@@ -283,23 +273,17 @@ modify_inbound_port() {
 
 modify_UUID() {
     [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
-    if [[ "on" == "$old_config_status" ]]; then
-        UUID="$(info_extraction '\"id\"')"
-    fi
     sed -i "/\"id\"/c \\\t  \"id\":\"${UUID}\"," ${v2ray_conf}
     judge "V2ray UUID 修改"
-    [ -f ${v2ray_qr_config_file} ] && sed -i "/\"id\"/c \\  \"id\": \"${UUID}\"," ${v2ray_qr_config_file}
+    [ -f ${v2ray_client_config_file} ] && sed -i "/\"id\"/c \\  \"id\": \"${UUID}\"," ${v2ray_client_config_file}
     echo -e "${OK} ${GreenBG} UUID:${UUID} ${Font}"
 }
 
 modify_nginx_port() {
-    if [[ "on" == "$old_config_status" ]]; then
-        port="$(info_extraction '\"port\"')"
-    fi
     sed -i "/ssl http2;$/c \\\tlisten ${port} ssl http2;" ${nginx_conf}
     sed -i "3c \\\tlisten [::]:${port} http2;" ${nginx_conf}
     judge "V2ray port 修改"
-    [ -f ${v2ray_qr_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${v2ray_qr_config_file}
+    [ -f ${v2ray_client_config_file} ] && sed -i "/\"port\"/c \\  \"port\": \"${port}\"," ${v2ray_client_config_file}
     echo -e "${OK} ${GreenBG} 端口号:${port} ${Font}"
 }
 
@@ -328,7 +312,7 @@ v2ray_install() {
     fi
     mkdir -p /root/v2ray
     cd /root/v2ray || exit
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/${github_branch}/install-release.sh"
+    wget -N --no-check-certificate "https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh"
 
     if [[ -f install-release.sh ]]; then
         rm -rf $v2ray_systemd_file
@@ -350,7 +334,6 @@ v2ray_update_dat() {
     wget -N --no-check-certificate "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat"
     wget -N --no-check-certificate "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
     echo -e "${OK} ${GreenBG} 更新Dat ${Font}"
-    cd -
 }
 
 nginx_exist_check() {
@@ -549,24 +532,6 @@ v2ray_conf_add_tls() {
     modify_UUID
 }
 
-old_config_exist_check() {
-    if [[ -f $v2ray_qr_config_file ]]; then
-        echo -e "${OK} ${GreenBG} 检测到旧配置文件，是否读取旧文件配置 [Y/N]? ${Font}"
-        read -r ssl_delete
-        case $ssl_delete in
-        [yY][eE][sS] | [yY])
-            echo -e "${OK} ${GreenBG} 已保留旧配置  ${Font}"
-            old_config_status="on"
-            port=$(info_extraction '\"port\"')
-            ;;
-        *)
-            rm -rf $v2ray_qr_config_file
-            echo -e "${OK} ${GreenBG} 已删除旧配置  ${Font}"
-            ;;
-        esac
-    fi
-}
-
 nginx_conf_add() {
     touch ${nginx_conf_dir}/v2ray.conf
     cat >${nginx_conf_dir}/v2ray.conf <<EOF
@@ -654,73 +619,22 @@ acme_cron_update() {
     judge "cron 计划任务更新"
 }
 
-vmess_qr_config_tls_ws() {
-    wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/tls/client_config.json -O "${v2ray_qr_config_file}"
-    sed -i "/\"id\": \"123456789\"/\"id\": \"${UUID}\"," "${v2ray_qr_config_file}"
-    sed -i "/\"port: 443\"/\"port\": ${PORT}," "${v2ray_qr_config_file}"
-    sed -i "/\"alterId: 12345\"/\"alterId\": ${alterID}," "${v2ray_qr_config_file}"
-    sed -i "/\"path\": \"/ray\"/\"path\": \"${camouflage},\"" "${v2ray_qr_config_file}"
-    sed -i "/www.v2raytlsws.tk/${domain}/g" "${v2ray_qr_config_file}"
-}
-
-vmess_qr_link_image() {
-    vmess_link="vmess://$(base64 -w 0 $v2ray_qr_config_file)"
-    {
-        echo -e "$Red 二维码: $Font"
-        echo -n "${vmess_link}" | qrencode -o - -t utf8
-        echo -e "${Red} URL导入链接:${vmess_link} ${Font}"
-    } >>"${v2ray_info_file}"
-}
-
-vmess_quan_link_image() {
-    echo "$(info_extraction '\"ps\"') = vmess, $(info_extraction '\"add\"'), \
-    $(info_extraction '\"port\"'), chacha20-ietf-poly1305, "\"$(info_extraction '\"id\"')\"", over-tls=true, \
-    certificate=1, obfs=ws, obfs-path="\"$(info_extraction '\"path\"')\"", " > /tmp/vmess_quan.tmp
-    vmess_link="vmess://$(base64 -w 0 /tmp/vmess_quan.tmp)"
-    {
-        echo -e "$Red 二维码: $Font"
-        echo -n "${vmess_link}" | qrencode -o - -t utf8
-        echo -e "${Red} URL导入链接:${vmess_link} ${Font}"
-    } >>"${v2ray_info_file}"
-}
-
-vmess_link_image_choice() {
-        echo "请选择生成的链接种类"
-        echo "1: V2RayNG/V2RayN"
-        echo "2: quantumult"
-        read -rp "请输入：" link_version
-        [[ -z ${link_version} ]] && link_version=1
-        if [[ $link_version == 1 ]]; then
-            vmess_qr_link_image
-        elif [[ $link_version == 2 ]]; then
-            vmess_quan_link_image
-        else
-            vmess_qr_link_image
-        fi
+vmess_client_config_tls_ws() {
+    wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/tls/client_config.json -O "${v2ray_client_config_file}"
+    sed -i "/\"id\": \"123456789\"/\"id\": \"${UUID}\"," "${v2ray_client_config_file}"
+    sed -i "/\"port: 123456789\"/\"port\": ${PORT}," "${v2ray_client_config_file}"
+    sed -i "/\"alterId: 12345\"/\"alterId\": ${alterID}," "${v2ray_client_config_file}"
+    sed -i "/\"path\": \"/ray\"/\"path\": \"${camouflage},\"" "${v2ray_client_config_file}"
+    sed -i "/test.domain/${domain}/g" "${v2ray_client_config_file}"
 }
 
 info_extraction() {
-    grep "$1" $v2ray_qr_config_file | awk -F '"' '{print $4}'
-}
-
-basic_information() {
-    {
-        echo -e "${OK} ${GreenBG} V2ray+ws+tls 安装成功"
-        echo -e "${Red} V2ray 配置信息 ${Font}"
-        echo -e "${Red} 地址（address）:${Font} $(info_extraction '\"add\"') "
-        echo -e "${Red} 端口（port）：${Font} $(info_extraction '\"port\"') "
-        echo -e "${Red} 用户id（UUID）：${Font} $(info_extraction '\"id\"')"
-        echo -e "${Red} 额外id（alterId）：${Font} $(info_extraction '\"aid\"')"
-        echo -e "${Red} 加密方式（security）：${Font} 自适应 "
-        echo -e "${Red} 传输协议（network）：${Font} $(info_extraction '\"net\"') "
-        echo -e "${Red} 伪装类型（type）：${Font} none "
-        echo -e "${Red} 路径（不要落下/）：${Font} $(info_extraction '\"path\"') "
-        echo -e "${Red} 底层传输安全：${Font} tls "
-    } >"${v2ray_info_file}"
+    grep "$1" $v2ray_client_config_file | awk -F '"' '{print $4}'
 }
 
 show_information() {
-    cat "${v2ray_info_file}"
+    cat "${v2ray_client_config_file}"
+    echo -e "${INFO} vmess://$(base64 -w 0 $v2ray_client_config_file)"
 }
 
 ssl_judge_and_install() {
@@ -808,7 +722,7 @@ show_error_log() {
 
 ssl_update_manuel() {
     [ -f ${amce_sh_file} ] && "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" || echo -e "${RedBG}证书签发工具不存在，请确认你是否使用了自己的证书${Font}"
-    domain="$(info_extraction '\"add\"')"
+    domain="$(info_extraction '\"host\":')"
     "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath "${v2ray_ssl_crt}" --keypath "${v2ray_ssl_key}" --ecc
 }
 
@@ -871,7 +785,6 @@ install_v2ray_ws_tls() {
     dependency_install
     basic_optimization
     domain_check
-    old_config_exist_check
     port_alterid_set
     v2ray_install
     v2ray_update_dat
@@ -883,25 +796,34 @@ install_v2ray_ws_tls() {
     web_camouflage
     ssl_judge_and_install
     nginx_systemd
-    vmess_qr_config_tls_ws
-    basic_information
-    vmess_link_image_choice
+    vmess_client_config_tls_ws
     tls_type
-    show_information
     start_process_systemd
     enable_process_systemd
     acme_cron_update
     restart_firewall
+    notify_users
+}
+
+notify_users() {
+    show_information
+    echo -e "${INFO} ${GreenBG} 客户端配置: ${v2ray_client_config_file} ${Font}"
+    echo -e "${INFO} ${GreenBG} 服务端配置: ${v2ray_conf} ${Font}"
+    echo -e "${INFO} ${GreenBG} nginx配置: ${nginx_conf} ${Font}"
 }
 
 restart_firewall() {
-    systemctl enable firewalld
-    systemctl start firewalld
-    echo -e "${OK} ${GreenBG} firewalld 已开启 ${Font}"
+    if [[ $(which firewalld) ]]; then
+        systemctl enable firewalld
+        systemctl start firewalld
+        echo -e "${OK} ${GreenBG} firewalld 已开启 ${Font}"
+    fi
 
-    systemctl enable ufw
-    systemctl start ufw
-    echo -e "${OK} ${GreenBG} ufw 已开启 ${Font}"
+    if [[ $(which ufw) ]]; then
+        systemctl enable ufw
+        systemctl start ufw
+        echo -e "${OK} ${GreenBG} ufw 已开启 ${Font}"
+    fi
 }
 
 update_sh() {
@@ -935,7 +857,7 @@ modify_camouflage_path() {
     [[ -z ${camouflage_path} ]] && camouflage_path=1
     sed -i "/location/c \\\tlocation \/${camouflage_path}\/" ${nginx_conf}          #Modify the camouflage path of the nginx configuration file
     sed -i "/\"path\"/c \\\t  \"path\": \"\/${camouflage_path}\/\"" ${v2ray_conf}    #Modify the camouflage path of the v2ray server configuration file
-    sed -i "/\"path\"/c \\\t  \"path\": \"\/${camouflage_path}\/,\"" ${v2ray_qr_config_file}    #Modify the camouflage path of the v2ray client configuration file
+    sed -i "/\"path\"/c \\\t  \"path\": \"\/${camouflage_path}\/,\"" ${v2ray_client_config_file}    #Modify the camouflage path of the v2ray client configuration file
     judge "V2ray camouflage path modified"
 }
 
@@ -954,11 +876,11 @@ menu() {
     echo -e "${Green}4.${Font}  变更 alterid"
     echo -e "${Green}5.${Font}  变更 port"
     echo -e "${Green}6.${Font}  变更 TLS 版本(仅ws+tls有效)"
-    echo -e "${Green}7.${Font}  变更伪装路径"
+    echo -e "${Green}7.${Font}  变更 伪装路径"
     echo -e "—————————————— 查看信息 ——————————————"
     echo -e "${Green}8.${Font}  查看 实时访问日志"
     echo -e "${Green}9.${Font}  查看 实时错误日志"
-    echo -e "${Green}10.${Font} 查看 V2Ray 配置信息"
+    echo -e "${Green}10.${Font} 查看 V2Ray客户端配置信息"
     echo -e "—————————————— 其他选项 ——————————————"
     echo -e "${Green}11.${Font} 安装 bbr"
     echo -e "${Green}12.${Font} 安装 MTproxy(支持TLS混淆)"
@@ -966,7 +888,7 @@ menu() {
     echo -e "${Green}14.${Font} 卸载 V2Ray"
     echo -e "${Green}15.${Font} 更新 证书crontab计划任务"
     echo -e "${Green}16.${Font} 清空 证书遗留文件"
-    echo -e "${Green}17.${Font} 更新V2ray Dat"
+    echo -e "${Green}17.${Font} 更新 V2ray Dat"
     echo -e "${Green}18.${Font} 退出 \n"
 
     read -rp "请输入数字：" menu_num
@@ -979,7 +901,7 @@ menu() {
         install_v2ray_ws_tls
         ;;
     2)
-        bash <(curl -L -s https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/${github_branch}/install-release.sh)
+        bash <(curl -L -s https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
         ;;
     3)
         read -rp "请输入UUID:" UUID
@@ -993,7 +915,7 @@ menu() {
         ;;
     5)
         read -rp "请输入连接端口:" port
-        if grep -q "ws" $v2ray_qr_config_file; then
+        if grep -q "ws" $v2ray_client_config_file; then
             modify_nginx_port
         fi
         start_process_systemd
@@ -1013,12 +935,6 @@ menu() {
         show_error_log
         ;;
     10)
-        basic_information
-        if [[ $shell_mode == "ws" ]]; then
-            vmess_link_image_choice
-        else
-            vmess_qr_link_image
-        fi
         show_information
         ;;
     11)
@@ -1066,7 +982,7 @@ menu() {
 
 judge_mode() {
     if [[ -f "${v2ray_bin_dir}/v2ray" ]]; then
-        if grep -q "ws" "${v2ray_qr_config_file}"; then
+        if grep -q "\"network\": \"ws\"" "${v2ray_client_config_file}"; then
             shell_mode="ws"
         fi
     fi

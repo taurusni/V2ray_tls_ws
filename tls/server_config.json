@@ -35,6 +35,11 @@
             "settings": {
                 "domainStrategy": "UseIP"
             }
+        },
+        {
+            "tag": "reject",
+            "protocol": "blackhole",
+            "settings": {}
         }
     ],
     "dns": {
@@ -53,10 +58,10 @@
         "rules": [
             {
                 "type": "field",
-                "inboundTag": [
-                    "vmess-in"
-                ],
-                "outboundTag": "direct"
+                "outboundTag": "reject",
+                "ip": [
+                    "geoip:private"
+                ]
             }
         ]
     }
