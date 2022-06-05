@@ -59,7 +59,16 @@
             {
                 "type": "field",
                 "outboundTag": "reject",
+                "domain": [
+                    "geosite:cn",
+                    "geosite:private"
+                ]
+            },
+            {
+                "type": "field",
+                "outboundTag": "reject",
                 "ip": [
+                    "geoip:cn",
                     "geoip:private"
                 ]
             }

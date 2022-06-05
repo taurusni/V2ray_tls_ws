@@ -81,5 +81,6 @@ Nginx 目录
 - [v2fly](https://www.v2fly.org/)
 - [acme.sh](https://github.com/acmesh-official/acme.sh)
 - [ClashX](https://github.com/yichengchen/clashX) 
-  - [Doc](https://github.com/Dreamacro/clash/wiki/Configuration)
+  - [Doc1](https://github.com/Dreamacro/clash/wiki/Configuration)
+  - [Doc2](https://lancellc.gitbook.io/clash/clash-config-file/dns)
 - [客户端](https://itlanyan.com/v2ray-clients-download/)
