@@ -10,7 +10,7 @@ V2.0
 - 使用增强版路由规则(https://github.com/Loyalsoldier/v2ray-rules-dat)
 - 增加IPv6
 - 删除h2
-- 更新客户端和服务端的配置
+- 更新客户端和服务端的配置 - 主要为了ClashX Pro
 - 删除了不用的功能
 
 V1.0
