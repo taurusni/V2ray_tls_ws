@@ -51,6 +51,7 @@ proxies:
   uuid: 1234567
   alterId: 123
   cipher: auto
+  udp: true
   tls: true
   skip-cert-verify: true
   tls-hostname: test.domain

@@ -234,7 +234,7 @@ basic_optimization() {
 port_alterid_set() {
     read -rp "请输入连接端口（default:443）:" port
     [[ -z ${port} ]] && port="443"
-    echo -e "${INFO} ${GreenGB} 是否开启VMess MD5 认证信息兼容 (y/n) ${Font}"
+    echo -e "${INFO} ${GreenBG} 是否开启VMess MD5 认证信息兼容 (y/n) ${Font}"
     read -r enableMD5
     case $enableMD5 in
     [yY][eE][sS] | [yY])
@@ -250,7 +250,7 @@ port_alterid_set() {
 modify_path() {
     sed -i "/\"path\"/c \\\t  \"path\":\"${camouflage}\"" ${v2ray_conf}
     sed -i "99c \"path\": \"${camouflage}\"," "${v2ray_client_config_json}"
-    sed -i "59c \ \ \ \ path: ${camouflage}" "${v2ray_client_config_yaml}"
+    sed -i "60c \ \ \ \ path: ${camouflage}" "${v2ray_client_config_yaml}"
     judge "V2ray 伪装路径 修改"
 }
 
@@ -258,11 +258,11 @@ modify_alterid() {
     # https://github.com/KukiSa/VMess-fAEAD-disable
     if [[ "${alterID}" -eq 0 ]]; then
         sed -i '/Environment="V2RAY_VMESS_AEAD_FORCED=false"/d' "${v2ray_systemd_file}"
-        echo -e "${OK} ${GreenGB} 禁用VMess MD5 认证信息兼容 ${Font}"
+        echo -e "${OK} ${GreenBG} 禁用VMess MD5 认证信息兼容 ${Font}"
     else
         sed -i '/Environment="V2RAY_VMESS_AEAD_FORCED=false"/d' "${v2ray_systemd_file}"
         sed -i '/ExecStart/i\Environment="V2RAY_VMESS_AEAD_FORCED=false"' "${v2ray_systemd_file}"
-        echo -e "${OK} ${GreenGB} 启用VMess MD5 认证信息兼容 ${Font}"
+        echo -e "${OK} ${GreenBG} 启用VMess MD5 认证信息兼容 ${Font}"
     fi
 
     sed -i "/\"alterId\"/c \\\t  \"alterId\":${alterID}" ${v2ray_conf}
@@ -878,7 +878,7 @@ modify_camouflage_path() {
     sed -i "/location/c \\\tlocation \/${camouflage_path}\/" ${nginx_conf}          # Modify the camouflage path of the nginx configuration file
     sed -i "/\"path\"/c \\\t  \"path\": \"\/${camouflage_path}\/\"" ${v2ray_conf}   # Modify the camouflage path of the v2ray server configuration file
     sed -i "99c \"path\": \"${camouflage}\"," "${v2ray_client_config_json}"         # Modify the camouflage path of the v2ray client configuration file
-    sed -i "59c \ \ \ \ path: ${camouflage}" "${v2ray_client_config_yaml}"          # Modify the camouflage path of the v2ray client configuration file
+    sed -i "60c \ \ \ \ path: ${camouflage}" "${v2ray_client_config_yaml}"          # Modify the camouflage path of the v2ray client configuration file
     judge "V2ray camouflage path modified"
 }
 
