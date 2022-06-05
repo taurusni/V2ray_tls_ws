@@ -1,0 +1,211 @@
+{
+    "log": {
+        "loglevel": "warning"
+    },
+    "dns": {
+        "hosts": {
+            "dns.google": "8.8.8.8",
+            "dns.pub": "119.29.29.29",
+            "dns.alidns.com": "223.5.5.5",
+            "geosite:category-ads-all": "127.0.0.1"
+        },
+        "servers": [
+            {
+                "address": "https://1.1.1.1/dns-query",
+                "domains": [
+                    "geosite:geolocation-!cn",
+                    "geosite:google@cn"
+                ],
+                "expectIPs": [
+                    "geoip:!cn"
+                ]
+            },
+            "8.8.8.8",
+            {
+                "address": "114.114.114.114",
+                "port": 53,
+                "domains": [
+                    "geosite:cn",
+                    "geosite:category-games@cn"
+                ],
+                "expectIPs": [
+                    "geoip:cn"
+                ],
+                "skipFallback": true
+            },
+            {
+                "address": "localhost",
+                "skipFallback": true
+            }
+        ]
+    },
+    "inbounds": [
+        {
+            "protocol": "socks",
+            "listen": "0.0.0.0",
+            "port": 1080,
+            "tag": "socks-in",
+            "settings": {
+                "ip": "127.0.0.1",
+                "udp": true,
+                "auth": "noauth"
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                    "http",
+                    "tls"
+                ]
+            }
+        },
+        {
+            "protocol": "http",
+            "listen": "0.0.0.0",
+            "port": 2080,
+            "tag": "http-in",
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                    "http",
+                    "tls"
+                ]
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "vmess",
+            "settings": {
+                "vnext": [
+                    {
+                        "address": "test.domain",
+                        "port": 123456789,
+                        "users": [
+                            {
+                                "id": "123456789",
+                                "alterId": 12345,
+                                "security": "auto",
+                                "level": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            "tag": "proxy",
+            "streamSettings": {
+                "network": "ws",
+                "security": "tls",
+                "wsSettings": {
+                    "path": "/ray",
+                    "headers": {
+                        "host": "test.domain"
+                    }
+                },
+                "tlsSettings": {
+                    "serverName": "test.domain",
+                    "allowInsecure": true
+                }
+            },
+            "mux": {
+                "enabled": false,
+                "concurrency": 8
+            }
+        },
+        {
+            "protocol": "dns",
+            "tag": "dns-out"
+        },
+        {
+            "protocol": "freedom",
+            "tag": "direct",
+            "settings": {
+                "domainStrategy": "UseIP"
+            }
+        },
+        {
+            "protocol": "blackhole",
+            "tag": "reject",
+            "settings": {
+                "response": {
+                    "type": "http"
+                }
+            }
+        }
+    ],
+    "routing": {
+        "domainStrategy": "IPIfNonMatch",
+        "domainMatcher": "mph",
+        "rules": [
+            {
+                "type": "field",
+                "outboundTag": "direct",
+                "protocol": [
+                    "bittorrent"
+                ]
+            },
+            {
+                "type": "field",
+                "outboundTag": "dns-out",
+                "inboundTag": [
+                    "socks-in",
+                    "http-in"
+                ],
+                "network": "udp",
+                "port": 53
+            },
+            {
+                "type": "field",
+                "outboundTag": "reject",
+                "domain": [
+                    "geosite:category-ads-all"
+                ]
+            },
+            {
+                "type": "field",
+                "outboundTag": "proxy",
+                "domain": [
+                    "full:www.icloud.com",
+                    "domain:icloud-content.com",
+                    "geosite:google"
+                ]
+            },
+            {
+                "type": "field",
+                "outboundTag": "direct",
+                "domain": [
+                    "geosite:tld-cn",
+                    "geosite:icloud",
+                    "geosite:category-games@cn"
+                ]
+            },
+            {
+                "type": "field",
+                "outboundTag": "proxy",
+                "domain": [
+                    "geosite:geolocation-!cn"
+                ]
+            },
+            {
+                "type": "field",
+                "outboundTag": "direct",
+                "domain": [
+                    "geosite:cn",
+                    "geosite:private"
+                ]
+            },
+            {
+                "type": "field",
+                "outboundTag": "direct",
+                "ip": [
+                    "geoip:cn",
+                    "geoip:private"
+                ]
+            },
+            {
+                "type": "field",
+                "outboundTag": "proxy",
+                "network": "tcp,udp"
+            }
+        ]
+    }
+}

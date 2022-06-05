@@ -7,29 +7,8 @@
     <title>Document</title>
 </head>
 <body>
-    <script>
-        // 1. window.setInterval() 每隔一段时间执行一段代码, 返回时钟的编号
-        // 可以传2个参数:
-        // 1) 要执行的代码段 (可以是一个函数，也可以是一段代码字符串)
-        // 2) 要间隔执行代码的毫秒数
-
-        // 第一参数为function
-        var t  = setInterval(function(){
-            console.log(new Date());
-        },2000); //每隔2秒输出时间
-
-        // 第一参数为代码字符串  不推荐
-        // setInterval("console.log(new Date());",2000);
-
-        // 2. 
-        // window.setTimeout() 间隔多久后，执行代码，只执行一次
-        // 1) 要执行的代码段 (可以是一个函数)
-        // 2) 要间隔执行代码的毫秒数
-        setTimeout(function(){
-            // console.log("Hello World!",1000);
-            // 5秒后停止时钟
-            clearInterval(t); //停止编号为t的时钟
-        },5000);
-    </script>
+    <div>
+        The powerful <strong>Hello World!</strong>
+    </div>
 </body>
 </html>

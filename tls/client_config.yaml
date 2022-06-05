@@ -1,0 +1,172 @@
+#---------------------------------------------------#
+## 这份文件是clashX的基础配置文件，请尽量新建配置文件进行修改。
+## ！！！只有这份文件的端口设置会随ClashX启动生效
+#---------------------------------------------------#
+
+# HTTP 代理端口
+port: 7890
+
+# SOCKS5 代理端口
+socks-port: 7891
+
+# 允许局域网的连接（可用来共享代理）
+allow-lan: false
+
+# 规则模式：Global（全局代理）/ Rule（规则） / Script(腳本) / Direct（全局直连）
+mode: Rule
+
+# 设置日志输出级别 (默认级别：silent，即不输出任何内容，以避免因日志内容过大而导致程序内存溢出）。
+# 5 个级别：silent / info / warning / error / debug。级别越高日志输出量越大，越倾向于调试，若需要请自行开启。
+log-level: info
+
+# clash 的 RESTful API
+external-controller: '0.0.0.0:9090'
+
+# RESTful API 的口令 (可选)
+secret: ""
+
+# DNS 设置
+dns:
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:53
+  enhanced-mode: redir-host
+  nameserver:
+    - 8.8.8.8
+    - 119.29.29.29
+    - 223.5.5.5
+    - tls://dns.rubyfish.cn:853  # dns over tls
+    - https://1.1.1.1/dns-query  # dns over https
+  fallback:
+    - tcp://1.1.1.1
+
+# 代理节点
+proxies:
+
+# VMess
+- name: "Sydney"
+  type: vmess
+  server: test.domain
+  port: 123
+  uuid: 1234567
+  alterId: 123
+  cipher: auto
+  udp: true
+  tls: true
+  skip-cert-verify: true
+  tls-hostname: test.domain
+  network: ws
+  ws-opts:
+    path: /ray
+    headers: 
+      Host: test.domain
+
+# 代理组策略
+#「Proxy」是代理规则策略，它可以指定为某个节点或嵌套一个其他策略组，如：「url-test」（自动测试）、「Fallback」或「load-balance」（负载均衡）的策略组
+proxy-groups:
+
+# 白名单模式 PROXY，黑名单模式 DIRECT
+- name: "GATEKEEPER"
+  type: select
+  proxies:
+    - "PROXY"
+    - "DIRECT"
+
+- name: "PROXY"
+  type: select
+  proxies:
+    - "Sydney"
+ 
+# 规则提供者
+rule-providers:
+  reject:
+    type: file
+    behavior: domain
+    path: ./ruleset/reject.yaml
+
+  icloud:
+    type: file
+    behavior: domain
+    path: ./ruleset/icloud.yaml
+
+  apple:
+    type: file
+    behavior: domain
+    path: ./ruleset/apple.yaml
+
+  google:
+    type: file
+    behavior: domain
+    path: ./ruleset/google.yaml
+
+  proxy:
+    type: file
+    behavior: domain
+    path: ./ruleset/proxy.yaml
+
+  direct:
+    type: file
+    behavior: domain
+    path: ./ruleset/direct.yaml
+
+  private:
+    type: file
+    behavior: domain
+    path: ./ruleset/private.yaml
+
+  gfw:
+    type: file
+    behavior: domain
+    path: ./ruleset/gfw.yaml
+
+  greatfire:
+    type: file
+    behavior: domain
+    path: ./ruleset/greatfire.yaml
+
+  tld-not-cn:
+    type: file
+    behavior: domain
+    path: ./ruleset/tld-not-cn.yaml
+
+  telegramcidr:
+    type: file
+    behavior: ipcidr
+    path: ./ruleset/telegramcidr.yaml
+
+  cncidr:
+    type: file
+    behavior: ipcidr
+    path: ./ruleset/cncidr.yaml
+
+  lancidr:
+    type: file
+    behavior: ipcidr
+    path: ./ruleset/lancidr.yaml
+
+  applications:
+    type: file
+    behavior: classical
+    path: ./ruleset/applications.yaml
+
+# 分流规则  
+rules:
+  - RULE-SET,applications,DIRECT
+  - DOMAIN,clash.razord.top,DIRECT
+  - DOMAIN,yacd.haishan.me,DIRECT
+  - RULE-SET,private,DIRECT
+  - RULE-SET,reject,REJECT
+  - RULE-SET,icloud,DIRECT
+  - RULE-SET,apple,DIRECT
+  - RULE-SET,google,DIRECT
+  - RULE-SET,proxy,PROXY
+  - RULE-SET,direct,DIRECT
+  - RULE-SET,lancidr,DIRECT
+  - RULE-SET,cncidr,DIRECT
+  - RULE-SET,telegramcidr,PROXY
+  - RULE-SET,tld-not-cn,PROXY
+  - RULE-SET,gfw,PROXY
+  - RULE-SET,greatfire,PROXY
+  - GEOIP,LAN,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,GATEKEEPER

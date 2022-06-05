@@ -1,0 +1,77 @@
+{
+    "log": {
+        "access": "/var/log/v2ray/access.log",
+        "error": "/var/log/v2ray/error.log",
+        "loglevel": "warning"
+    },
+    "inbounds": [
+        {
+            "port": 18753,
+            "listen": "127.0.0.1",
+            "protocol": "vmess",
+            "tag": "vmess-in",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "d78e7fc4-6d23-11eb-9439-0242ac130002",
+                        "level": 0,
+                        "alterId": 233
+                    }
+                ],
+                "disableInsecureEncryption": true
+            },
+            "streamSettings": {
+                "network": "ws",
+                "wsSettings": {
+                    "path": "/ray"
+                }
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "tag": "direct",
+            "protocol": "freedom",
+            "settings": {
+                "domainStrategy": "UseIP"
+            }
+        },
+        {
+            "tag": "reject",
+            "protocol": "blackhole",
+            "settings": {}
+        }
+    ],
+    "dns": {
+        "servers": [
+            "https+local://1.1.1.1/dns-query",
+            "1.1.1.1",
+            "1.0.0.1",
+            "8.8.8.8",
+            "8.8.4.4",
+            "localhost"
+        ]
+    },
+    "routing": {
+        "domainStrategy": "IPOnDemand",
+        "domainMatcher": "mph",
+        "rules": [
+            {
+                "type": "field",
+                "outboundTag": "reject",
+                "domain": [
+                    "geosite:cn",
+                    "geosite:private"
+                ]
+            },
+            {
+                "type": "field",
+                "outboundTag": "reject",
+                "ip": [
+                    "geoip:cn",
+                    "geoip:private"
+                ]
+            }
+        ]
+    }
+}
