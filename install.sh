@@ -34,13 +34,15 @@ nginx_dir="/etc/nginx"
 web_dir="/home/wwwroot"
 nginx_openssl_src="/usr/local/src"
 v2ray_bin_dir="/usr/local/bin"
-v2ray_client_config_json="/usr/local/v2ray/client_config.json"
-v2ray_client_config_yaml="/usr/local/v2ray/client_config.yaml"
-v2ray_client_config_yaml_ruleset="/usr/local/v2ray/ruleset"
+v2ray_client_dir="/usr/local/v2ray"
+v2ray_client_config_json="${v2ray_client_dir}/client_config.json"
+v2ray_client_config_yaml="${v2ray_client_dir}/client_config.yaml"
+v2ray_client_config_yaml_ruleset="${v2ray_client_dir}/ruleset"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 v2ray_systemd_file="/etc/systemd/system/v2ray.service"
-v2ray_access_log="/var/log/v2ray/access.log"
-v2ray_error_log="/var/log/v2ray/error.log"
+v2ray_log_dir="/var/log/v2ray"
+v2ray_access_log="${v2ray_log_dir}/access.log"
+v2ray_error_log="${v2ray_log_dir}/error.log"
 v2ray_dat_path="/usr/local/share/v2ray/"
 v2ray_ssl_path="/data"
 v2ray_ssl_key="${v2ray_ssl_path}/v2ray.key"
@@ -342,6 +344,7 @@ v2ray_update_dat() {
     wget -N --no-check-certificate "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
     echo -e "${OK} ${GreenBG} 更新Dat ${Font}"
 
+    mkdir -p "${v2ray_client_config_yaml_ruleset}"
     cd "${v2ray_client_config_yaml_ruleset}" || exit
     wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/reject.txt"  -O "${v2ray_client_config_yaml_ruleset}/reject.yaml"
     wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/icloud.txt" -O "${v2ray_client_config_yaml_ruleset}/icloud.yaml"
@@ -773,6 +776,9 @@ uninstall_all() {
     fi
     [[ -d $v2ray_conf_dir ]] && rm -rf $v2ray_conf_dir
     [[ -d $web_dir ]] && rm -rf $web_dir
+    [[ -d $v2ray_log_dir ]] && rm -rf $v2ray_log_dir
+    [[ -d $v2ray_client_dir ]] && rm -rf $v2ray_client_dir
+    [[ -d $v2ray_dat_path ]] && rm -rf $v2ray_dat_path
     echo -e "${OK} ${Green} 是否卸载acme.sh及证书 [Y/N]? ${Font}"
     read -r uninstall_acme
     case $uninstall_acme in
