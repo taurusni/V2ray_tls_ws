@@ -34,7 +34,8 @@ nginx_dir="/etc/nginx"
 web_dir="/home/wwwroot"
 nginx_openssl_src="/usr/local/src"
 v2ray_bin_dir="/usr/local/bin"
-v2ray_client_config_file="/usr/local/client_config.json"
+v2ray_client_config_json="/usr/local/client_config.json"
+v2ray_client_config_yaml="/usr/local/client_config.yaml"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 v2ray_systemd_file="/etc/systemd/system/v2ray.service"
 v2ray_access_log="/var/log/v2ray/access.log"
@@ -245,7 +246,8 @@ port_alterid_set() {
 
 modify_path() {
     sed -i "/\"path\"/c \\\t  \"path\":\"${camouflage}\"" ${v2ray_conf}
-    sed -i "99c \"path\": \"${camouflage},\"" "${v2ray_client_config_file}"
+    sed -i "99c \"path\": \"${camouflage}\"," "${v2ray_client_config_json}"
+    sed -i "66c \ \ \ \ path: ${camouflage}" "${v2ray_client_config_yaml}"
     judge "V2ray 伪装路径 修改"
 }
 
@@ -261,7 +263,8 @@ modify_alterid() {
     fi
 
     sed -i "/\"alterId\"/c \\\t  \"alterId\":${alterID}" ${v2ray_conf}
-    sed -i "86c \"alterId\": ${alterID}," "${v2ray_client_config_file}"
+    sed -i "86c \"alterId\": ${alterID}," "${v2ray_client_config_json}"
+    sed -i "59c \ \ alterId: ${alterID}" "${v2ray_client_config_yaml}"
     judge "V2ray alterid 修改"
     echo -e "${OK} ${GreenBG} alterID:${alterID} ${Font}"
 }
@@ -275,7 +278,8 @@ modify_inbound_port() {
 modify_UUID() {
     [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
     sed -i "/\"id\"/c \\\t  \"id\":\"${UUID}\"," ${v2ray_conf}
-    sed -i "85c \"id\": \"${UUID}\"," "${v2ray_client_config_file}"
+    sed -i "85c \"id\": \"${UUID}\"," "${v2ray_client_config_json}"
+    sed -i "58c \ \ uuid: ${UUID}" "${v2ray_client_config_yaml}"
     judge "V2ray UUID 修改"
     echo -e "${OK} ${GreenBG} UUID:${UUID} ${Font}"
 }
@@ -283,7 +287,8 @@ modify_UUID() {
 modify_nginx_port() {
     sed -i "/ssl http2;$/c \\\tlisten ${port} ssl http2;" ${nginx_conf}
     sed -i "3c \\\tlisten [::]:${port} http2;" ${nginx_conf}
-    sed -i "82c \"port\": ${port}," "${v2ray_client_config_file}"
+    sed -i "82c \"port\": ${port}," "${v2ray_client_config_json}"
+    sed -i "57c \ \ port: ${port}" "${v2ray_client_config_yaml}"
     judge "V2ray port 修改"
     echo -e "${OK} ${GreenBG} 端口号:${port} ${Font}"
 }
@@ -313,7 +318,7 @@ v2ray_install() {
     fi
     mkdir -p /root/v2ray
     cd /root/v2ray || exit
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh"
+    wget --no-check-certificate "https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/v2fly_224e431/install-release.sh"
 
     if [[ -f install-release.sh ]]; then
         rm -rf $v2ray_systemd_file
@@ -527,11 +532,14 @@ acme() {
 v2ray_conf_add_tls() {
     cd "${v2ray_conf_dir}" || exit
     wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/tls/server_config.json -O config.json
-    wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/tls/client_config.json -O "${v2ray_client_config_file}"
+    wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/tls/client_config.json -O "${v2ray_client_config_json}"
+    wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/tls/client_config.yaml -O "${v2ray_client_config_yaml}"
     modify_path
     modify_alterid
     modify_inbound_port
     modify_UUID
+    sed -i "s/test.domain/${domain}/g" "${v2ray_client_config_json}"
+    sed -i "s/test.domain/${domain}/g" "${v2ray_client_config_yaml}"
 }
 
 nginx_conf_add() {
@@ -622,12 +630,7 @@ acme_cron_update() {
 }
 
 info_extraction() {
-    grep "$1" $v2ray_client_config_file | awk -F '"' '{print $4}'
-}
-
-show_information() {
-    cat "${v2ray_client_config_file}"
-    echo -e "${INFO} vmess://$(base64 -w 0 $v2ray_client_config_file)"
+    grep "$1" $v2ray_client_config_json | awk -F '"' '{print $4}'
 }
 
 ssl_judge_and_install() {
@@ -798,8 +801,8 @@ install_v2ray_ws_tls() {
 }
 
 notify_users() {
-    show_information
-    echo -e "${INFO} ${GreenBG} 客户端配置: ${v2ray_client_config_file} ${Font}"
+    echo -e "${INFO} ${GreenBG} 客户端配置: ${v2ray_client_config_json} ${Font}"
+    echo -e "${INFO} ${GreenBG} 客户端配置: ${v2ray_client_config_yaml} ${Font}"
     echo -e "${INFO} ${GreenBG} 服务端配置: ${v2ray_conf} ${Font}"
     echo -e "${INFO} ${GreenBG} nginx配置: ${nginx_conf} ${Font}"
 }
@@ -849,7 +852,8 @@ modify_camouflage_path() {
     [[ -z ${camouflage_path} ]] && camouflage_path=1
     sed -i "/location/c \\\tlocation \/${camouflage_path}\/" ${nginx_conf}          # Modify the camouflage path of the nginx configuration file
     sed -i "/\"path\"/c \\\t  \"path\": \"\/${camouflage_path}\/\"" ${v2ray_conf}   # Modify the camouflage path of the v2ray server configuration file
-    sed -i "99c \"path\": \"${camouflage},\"" "${v2ray_client_config_file}"        # Modify the camouflage path of the v2ray client configuration file
+    sed -i "99c \"path\": \"${camouflage}\"," "${v2ray_client_config_json}"         # Modify the camouflage path of the v2ray client configuration file
+    sed -i "66c \ \ \ \ path: ${camouflage}" "${v2ray_client_config_yaml}"          # Modify the camouflage path of the v2ray client configuration file
     judge "V2ray camouflage path modified"
 }
 
@@ -907,7 +911,7 @@ menu() {
         ;;
     5)
         read -rp "请输入连接端口:" port
-        if grep -q "ws" $v2ray_client_config_file; then
+        if grep -q "ws" $v2ray_client_config_json; then
             modify_nginx_port
         fi
         start_process_systemd
@@ -927,7 +931,7 @@ menu() {
         show_error_log
         ;;
     10)
-        show_information
+        notify_users
         ;;
     11)
         read -rp "安转默认bbr还是增强版(增强版可能有兼容性问题) - 默认Y" bbr_version
@@ -974,7 +978,7 @@ menu() {
 
 judge_mode() {
     if [[ -f "${v2ray_bin_dir}/v2ray" ]]; then
-        if grep -q "\"network\": \"ws\"" "${v2ray_client_config_file}"; then
+        if grep -q "\"network\": \"ws\"" "${v2ray_client_config_json}"; then
             shell_mode="ws"
         fi
     fi

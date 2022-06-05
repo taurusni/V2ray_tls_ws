@@ -5,6 +5,7 @@ V2.0
 修改README.MD
 修改index.html
 修改install.sh 
+    - 使用固定的v2ray安装脚本
     - 增加MD5兼容性(https://github.com/KukiSa/VMess-fAEAD-disable)
     - 使用增强版路由规则(https://github.com/Loyalsoldier/v2ray-rules-dat)
     - 增加IPv6
