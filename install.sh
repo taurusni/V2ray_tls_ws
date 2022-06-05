@@ -551,6 +551,7 @@ acme() {
 }
 
 v2ray_conf_add_tls() {
+    mkdir -p "${v2ray_client_dir}"
     cd "${v2ray_conf_dir}" || exit
     wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/tls/server_config.json -O config.json
     wget --no-check-certificate https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/tls/client_config.json -O "${v2ray_client_config_json}"
