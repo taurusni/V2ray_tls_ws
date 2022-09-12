@@ -234,7 +234,7 @@ basic_optimization() {
 port_alterid_set() {
     read -rp "请输入连接端口（default:443）:" port
     [[ -z ${port} ]] && port="443"
-    echo -e "${INFO} ${GreenBG} 是否开启VMess MD5 认证信息兼容 (y/n) ${Font}"
+    echo -e "${INFO} ${GreenBG} 是否开启VMess MD5 认证信息兼容? (y/n) ${Font}"
     read -r enableMD5
     case $enableMD5 in
     [yY][eE][sS] | [yY])
