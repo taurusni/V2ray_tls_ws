@@ -1,10 +1,14 @@
-## 2022-6-2
+## 2022-9-12
+
+V2.0.1
+- 修复服务器配置问题
+- 支持core 5.1.0
 
 V2.0
-增加bbr脚本 - https://github.com/iyidengme/Linux-NetSpeed-By-ylx2016
-修改README.MD
-修改index.html
-修改install.sh 
+- 增加bbr脚本 - https://github.com/iyidengme/Linux-NetSpeed-By-ylx2016
+- 修改README.MD
+- 修改index.html
+- 修改install.sh 
 - 使用固定的v2ray安装脚本
 - 增加MD5兼容性(https://github.com/KukiSa/VMess-fAEAD-disable)
 - 使用增强版路由规则(https://github.com/Loyalsoldier/v2ray-rules-dat)
