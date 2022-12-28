@@ -1,6 +1,7 @@
-## 2022-9-12
+V2.0.2 - 2022-12-28
+- 使用ipinfo.io获取ip地址
 
-V2.0.1
+V2.0.1 - 2022-9-12
 - 修复服务器配置问题
 - 支持core 5.1.0
 
@@ -18,4 +19,4 @@ V2.0
 - 删除了不用的功能
 
 V1.0
-修改 https://github.com/wulabing/V2Ray_ws-tls_bash_onekey 的版本，基于 https://github.com/v2fly/fhs-install-v2ray
+- 修改 https://github.com/wulabing/V2Ray_ws-tls_bash_onekey 的版本，基于 https://github.com/v2fly/fhs-install-v2ray
