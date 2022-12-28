@@ -22,7 +22,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
 # 版本
-shell_version="2.0.1"
+shell_version="2.0.2"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
@@ -469,8 +469,8 @@ domain_check() {
         wg-quick down wgcf >/dev/null 2>&1
         echo -e "${OK} ${GreenBG} 已关闭 wgcf-warp ${Font}"
     fi
-    local_ipv4=$(curl -s4m8 https://ip.gs)
-    local_ipv6=$(curl -s6m8 https://ip.gs)
+    local_ipv4=$(curl -s4m8 https://ipinfo.io | grep -Po 'ip[^0-9]*"\K[^"]*')
+    local_ipv6=$(curl -s6m8 https://ipinfo.io | grep -Po 'ip[^0-9]*"\K[^"]*')
     if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
         echo -e nameserver 2a01:4f8:c2c:123f::1 > /etc/resolv.conf
         echo -e "${OK} ${GreenBG} VM 只启用了 IPv6, 自动添加 DNS64 服务器 ${Font}"
