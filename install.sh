@@ -22,7 +22,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
 # 版本
-shell_version="2.0.2"
+shell_version="2.0.3"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
@@ -321,7 +321,7 @@ v2ray_install() {
     fi
     mkdir -p /root/v2ray
     cd /root/v2ray || exit
-    wget --no-check-certificate "https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/v2fly_224e431/install-release.sh"
+    wget --no-check-certificate "https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh"
 
     if [[ -f install-release.sh ]]; then
         rm -rf $v2ray_systemd_file

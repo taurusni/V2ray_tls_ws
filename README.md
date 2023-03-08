@@ -16,8 +16,7 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 **注意**: 
 1. 脚本默认使用最新的Core, 请注意客户端 Core 的同步更新，需要保证客户端内核版本 >= 服务端内核版本
 2. 确保入站80端口和自己所需的端口已经打开. 比如使用微软的云服务，NSG需要允许所需端口.
-3. 由于 [websocket: close 1000 (normal) > proxy/vmess/encoding: invalid user > proxy/vmess: Not Found](https://github.com/v2fly/v2ray-core/issues/1605), 使用固定的v2ray社区安转脚本(commit: 224e431). 如果问题解决, 可自行升级最新社区安装脚本
-4. 使用yaml配置文件的时候(针对ClashX Pro), 需要把ruleset里的配置文件一起保存到本地
+3. 使用yaml配置文件的时候(针对ClashX Pro), 需要把ruleset里的配置文件一起保存到本地
 
 ### 更新日志
 
