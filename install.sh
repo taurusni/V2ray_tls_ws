@@ -249,7 +249,7 @@ port_alterid_set() {
 
 modify_path() {
     sed -i "/\"path\"/c \\\t  \"path\":\"${camouflage}\"" ${v2ray_conf}
-    sed -i "99c \"path\": \"${camouflage}\"," "${v2ray_client_config_json}"
+    sed -i "/\"path\"/c \"path\": \"${camouflage}\"," "${v2ray_client_config_json}"
     sed -i "60c \ \ \ \ path: ${camouflage}" "${v2ray_client_config_yaml}"
     judge "V2ray 伪装路径 修改"
 }
@@ -266,7 +266,7 @@ modify_alterid() {
     fi
 
     sed -i "/\"alterId\"/c \\\t  \"alterId\":${alterID}" ${v2ray_conf}
-    sed -i "86c \"alterId\": ${alterID}," "${v2ray_client_config_json}"
+    sed -i "/\"alterId\"/c \"alterId\": ${alterID}," "${v2ray_client_config_json}"
     sed -i "52c \ \ alterId: ${alterID}" "${v2ray_client_config_yaml}"
     judge "V2ray alterid 修改"
     echo -e "${OK} ${GreenBG} alterID:${alterID} ${Font}"
@@ -281,7 +281,7 @@ modify_inbound_port() {
 modify_UUID() {
     [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
     sed -i "/\"id\"/c \\\t  \"id\":\"${UUID}\"," ${v2ray_conf}
-    sed -i "85c \"id\": \"${UUID}\"," "${v2ray_client_config_json}"
+    sed -i "/\"id\"/c \"id\": \"${UUID}\"," "${v2ray_client_config_json}"
     sed -i "51c \ \ uuid: ${UUID}" "${v2ray_client_config_yaml}"
     judge "V2ray UUID 修改"
     echo -e "${OK} ${GreenBG} UUID:${UUID} ${Font}"
@@ -290,7 +290,7 @@ modify_UUID() {
 modify_nginx_port() {
     sed -i "/ssl http2;$/c \\\tlisten ${port} ssl http2;" ${nginx_conf}
     sed -i "3c \\\tlisten [::]:${port} http2;" ${nginx_conf}
-    sed -i "82c \"port\": ${port}," "${v2ray_client_config_json}"
+    sed -i "/\"port\": 123456789/c \"port\": ${port}," "${v2ray_client_config_json}"
     sed -i "50c \ \ port: ${port}" "${v2ray_client_config_yaml}"
     judge "V2ray port 修改"
     echo -e "${OK} ${GreenBG} 端口号:${port} ${Font}"
@@ -321,7 +321,7 @@ v2ray_install() {
     fi
     mkdir -p /root/v2ray
     cd /root/v2ray || exit
-    wget --no-check-certificate "https://raw.githubusercontent.com/taurusni/V2ray_tls_ws/${github_branch}/v2fly_224e431/install-release.sh"
+    wget --no-check-certificate "https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/${github_branch}/install-release.sh"
 
     if [[ -f install-release.sh ]]; then
         rm -rf $v2ray_systemd_file
@@ -662,7 +662,7 @@ ssl_judge_and_install() {
         read -r ssl_delete
         case $ssl_delete in
             [yY][eE][sS] | [yY])
-                rm -rf /data/*
+                rm -rf ${v2ray_ssl_path}/*
                 echo -e "${OK} ${GreenBG} 已删除 ${Font}"
                 ;;
             *) ;;
@@ -878,8 +878,8 @@ modify_camouflage_path() {
     [[ -z ${camouflage_path} ]] && camouflage_path=1
     sed -i "/location/c \\\tlocation \/${camouflage_path}\/" ${nginx_conf}          # Modify the camouflage path of the nginx configuration file
     sed -i "/\"path\"/c \\\t  \"path\": \"\/${camouflage_path}\/\"" ${v2ray_conf}   # Modify the camouflage path of the v2ray server configuration file
-    sed -i "99c \"path\": \"${camouflage}\"," "${v2ray_client_config_json}"         # Modify the camouflage path of the v2ray client configuration file
-    sed -i "60c \ \ \ \ path: ${camouflage}" "${v2ray_client_config_yaml}"          # Modify the camouflage path of the v2ray client configuration file
+    sed -i "/\"path\"/c \"path\": \"${camouflage_path}\"," "${v2ray_client_config_json}"         # Modify the camouflage path of the v2ray client configuration file
+    sed -i "60c \ \ \ \ path: ${camouflage_path}" "${v2ray_client_config_yaml}"          # Modify the camouflage path of the v2ray client configuration file
     judge "V2ray camouflage path modified"
 }
 

@@ -2,43 +2,6 @@
     "log": {
         "loglevel": "warning"
     },
-    "dns": {
-        "hosts": {
-            "dns.google": "8.8.8.8",
-            "dns.pub": "119.29.29.29",
-            "dns.alidns.com": "223.5.5.5",
-            "geosite:category-ads-all": "127.0.0.1"
-        },
-        "servers": [
-            {
-                "address": "https://1.1.1.1/dns-query",
-                "domains": [
-                    "geosite:geolocation-!cn",
-                    "geosite:google@cn"
-                ],
-                "expectIPs": [
-                    "geoip:!cn"
-                ]
-            },
-            "8.8.8.8",
-            {
-                "address": "114.114.114.114",
-                "port": 53,
-                "domains": [
-                    "geosite:cn",
-                    "geosite:category-games@cn"
-                ],
-                "expectIPs": [
-                    "geoip:cn"
-                ],
-                "skipFallback": true
-            },
-            {
-                "address": "localhost",
-                "skipFallback": true
-            }
-        ]
-    },
     "inbounds": [
         {
             "protocol": "socks",
@@ -112,100 +75,52 @@
             }
         },
         {
-            "protocol": "dns",
-            "tag": "dns-out"
-        },
-        {
             "protocol": "freedom",
             "tag": "direct",
             "settings": {
                 "domainStrategy": "UseIP"
             }
-        },
-        {
-            "protocol": "blackhole",
-            "tag": "reject",
-            "settings": {
-                "response": {
-                    "type": "http"
-                }
-            }
         }
     ],
     "routing": {
-        "domainStrategy": "IPIfNonMatch",
+        "domainStrategy": "IPOnDemand",
         "domainMatcher": "mph",
         "rules": [
             {
                 "type": "field",
                 "outboundTag": "direct",
-                "protocol": [
-                    "bittorrent"
-                ]
-            },
-            {
-                "type": "field",
-                "outboundTag": "dns-out",
-                "inboundTag": [
-                    "socks-in",
-                    "http-in"
-                ],
-                "network": "udp",
-                "port": 53
-            },
-            {
-                "type": "field",
-                "outboundTag": "reject",
                 "domain": [
-                    "geosite:category-ads-all"
+                    "msn",
+                    "live",
+                    "microsoft",
+                    "azureedge",
+                    "bing",
+                    "scorecardresearch"
                 ]
             },
             {
                 "type": "field",
                 "outboundTag": "proxy",
                 "domain": [
-                    "full:www.icloud.com",
-                    "domain:icloud-content.com",
-                    "geosite:google"
-                ]
-            },
-            {
-                "type": "field",
-                "outboundTag": "direct",
-                "domain": [
-                    "geosite:tld-cn",
-                    "geosite:icloud",
-                    "geosite:category-games@cn"
-                ]
-            },
-            {
-                "type": "field",
-                "outboundTag": "proxy",
-                "domain": [
+                    "geosite:google",
                     "geosite:geolocation-!cn"
                 ]
             },
-            {
-                "type": "field",
-                "outboundTag": "direct",
-                "domain": [
-                    "geosite:cn",
-                    "geosite:private"
-                ]
-            },
-            {
+              {
+                  "type": "field",
+                  "outboundTag": "direct",
+                  "domain": [
+                      "geosite:cn"
+                  ]
+              },
+              {
                 "type": "field",
                 "outboundTag": "direct",
                 "ip": [
-                    "geoip:cn",
-                    "geoip:private"
-                ]
-            },
-            {
-                "type": "field",
-                "outboundTag": "proxy",
-                "network": "tcp,udp"
-            }
-        ]
+                  "geoip:cn",
+                  "geoip:private"
+                  ]
+                }
+          ]
     }
 }
