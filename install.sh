@@ -22,7 +22,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
 # 版本
-shell_version="2.0.3"
+shell_version="2.0.4"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
@@ -37,7 +37,6 @@ v2ray_bin_dir="/usr/local/bin"
 v2ray_client_dir="/usr/local/v2ray"
 v2ray_client_config_json="${v2ray_client_dir}/client_config.json"
 v2ray_client_config_yaml="${v2ray_client_dir}/client_config.yaml"
-v2ray_client_config_yaml_ruleset="${v2ray_client_dir}/ruleset"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
 v2ray_systemd_file="/etc/systemd/system/v2ray.service"
 v2ray_log_dir="/var/log/v2ray"
@@ -343,24 +342,6 @@ v2ray_update_dat() {
     wget -N --no-check-certificate "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat"
     wget -N --no-check-certificate "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
     echo -e "${OK} ${GreenBG} 更新Dat ${Font}"
-
-    mkdir -p "${v2ray_client_config_yaml_ruleset}"
-    cd "${v2ray_client_config_yaml_ruleset}" || exit
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/reject.txt"  -O "${v2ray_client_config_yaml_ruleset}/reject.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/icloud.txt" -O "${v2ray_client_config_yaml_ruleset}/icloud.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/apple.txt" -O "${v2ray_client_config_yaml_ruleset}/apple.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/google.txt" -O "${v2ray_client_config_yaml_ruleset}/google.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/proxy.txt" -O "${v2ray_client_config_yaml_ruleset}/proxy.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/direct.txt" -O "${v2ray_client_config_yaml_ruleset}/direct.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/private.txt" -O "${v2ray_client_config_yaml_ruleset}/private.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/gfw.txt" -O "${v2ray_client_config_yaml_ruleset}/gfw.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/greatfire.txt" -O "${v2ray_client_config_yaml_ruleset}/greatfire.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/tld-not-cn.txt" -O "${v2ray_client_config_yaml_ruleset}/tld-not-cn.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/telegramcidr.txt" -O "${v2ray_client_config_yaml_ruleset}/telegramcidr.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/cncidr.txt" -O "${v2ray_client_config_yaml_ruleset}/cncidr.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/lancidr.txt" -O "${v2ray_client_config_yaml_ruleset}/lancidr.yaml"
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/applications.txt" -O "${v2ray_client_config_yaml_ruleset}/applications.yaml"
-    echo -e "${OK} ${GreenBG} 更新ruleset ${Font}"
 }
 
 nginx_exist_check() {
@@ -662,7 +643,7 @@ ssl_judge_and_install() {
         read -r ssl_delete
         case $ssl_delete in
             [yY][eE][sS] | [yY])
-                rm -rf ${v2ray_ssl_path}/*
+                rm -rf "${v2ray_ssl_key}" "${v2ray_ssl_crt}"
                 echo -e "${OK} ${GreenBG} 已删除 ${Font}"
                 ;;
             *) ;;
@@ -786,7 +767,7 @@ uninstall_all() {
     [yY][eE][sS] | [yY])
       /root/.acme.sh/acme.sh --uninstall
       rm -rf /root/.acme.sh
-      rm -rf /data/*
+      rm -rf "${v2ray_ssl_key}" "${v2ray_ssl_crt}"
       ;;
     *) ;;
     esac
@@ -828,7 +809,6 @@ install_v2ray_ws_tls() {
 notify_users() {
     echo -e "${INFO} ${GreenBG} 客户端配置: ${v2ray_client_config_json} ${Font}"
     echo -e "${INFO} ${GreenBG} 客户端配置: ${v2ray_client_config_yaml} ${Font}"
-    echo -e "${INFO} ${GreenBG} 客户端规则: ${v2ray_client_config_yaml_ruleset} ${Font}"
     echo -e "${INFO} ${GreenBG} 服务端配置: ${v2ray_conf} ${Font}"
     echo -e "${INFO} ${GreenBG} nginx配置: ${nginx_conf} ${Font}"
 }
