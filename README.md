@@ -16,7 +16,6 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 **注意**: 
 1. 脚本默认使用最新的Core, 请注意客户端 Core 的同步更新，需要保证客户端内核版本 >= 服务端内核版本
 2. 确保入站80端口和自己所需的端口已经打开. 比如使用微软的云服务，NSG需要允许所需端口.
-3. 使用yaml配置文件的时候(针对ClashX Pro), 需要把ruleset里的配置文件一起保存到本地
 
 ### 更新日志
 
@@ -63,9 +62,6 @@ V2ray 服务端配置:
 V2ray 客户端配置:
 /usr/local/v2ray/client_config.json
 /usr/local/v2ray/client_config.yaml
-
-ClashX Pro 规则目录:
-/usr/local/v2ray/ruleset
 
 Nginx 目录
 /etc/nginx
