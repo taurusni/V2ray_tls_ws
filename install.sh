@@ -249,7 +249,7 @@ port_alterid_set() {
 modify_path() {
     sed -i "/\"path\"/c \\\t  \"path\":\"${camouflage}\"" ${v2ray_conf}
     sed -i "/\"path\"/c \"path\": \"${camouflage}\"," "${v2ray_client_config_json}"
-    sed -i "60c \ \ \ \ path: ${camouflage}" "${v2ray_client_config_yaml}"
+    sed -i "59c \ \ \ \ path: ${camouflage}" "${v2ray_client_config_yaml}"
     judge "V2ray 伪装路径 修改"
 }
 
@@ -266,7 +266,7 @@ modify_alterid() {
 
     sed -i "/\"alterId\"/c \\\t  \"alterId\":${alterID}" ${v2ray_conf}
     sed -i "/\"alterId\"/c \"alterId\": ${alterID}," "${v2ray_client_config_json}"
-    sed -i "52c \ \ alterId: ${alterID}" "${v2ray_client_config_yaml}"
+    sed -i "51c \ \ alterId: ${alterID}" "${v2ray_client_config_yaml}"
     judge "V2ray alterid 修改"
     echo -e "${OK} ${GreenBG} alterID:${alterID} ${Font}"
 }
@@ -281,7 +281,7 @@ modify_UUID() {
     [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
     sed -i "/\"id\"/c \\\t  \"id\":\"${UUID}\"," ${v2ray_conf}
     sed -i "/\"id\"/c \"id\": \"${UUID}\"," "${v2ray_client_config_json}"
-    sed -i "51c \ \ uuid: ${UUID}" "${v2ray_client_config_yaml}"
+    sed -i "50c \ \ uuid: ${UUID}" "${v2ray_client_config_yaml}"
     judge "V2ray UUID 修改"
     echo -e "${OK} ${GreenBG} UUID:${UUID} ${Font}"
 }
@@ -290,7 +290,7 @@ modify_nginx_port() {
     sed -i "/ssl http2;$/c \\\tlisten ${port} ssl http2;" ${nginx_conf}
     sed -i "3c \\\tlisten [::]:${port} http2;" ${nginx_conf}
     sed -i "/\"port\": 123456789/c \"port\": ${port}," "${v2ray_client_config_json}"
-    sed -i "50c \ \ port: ${port}" "${v2ray_client_config_yaml}"
+    sed -i "49c \ \ port: ${port}" "${v2ray_client_config_yaml}"
     judge "V2ray port 修改"
     echo -e "${OK} ${GreenBG} 端口号:${port} ${Font}"
 }
@@ -859,7 +859,7 @@ modify_camouflage_path() {
     sed -i "/location/c \\\tlocation \/${camouflage_path}\/" ${nginx_conf}          # Modify the camouflage path of the nginx configuration file
     sed -i "/\"path\"/c \\\t  \"path\": \"\/${camouflage_path}\/\"" ${v2ray_conf}   # Modify the camouflage path of the v2ray server configuration file
     sed -i "/\"path\"/c \"path\": \"${camouflage_path}\"," "${v2ray_client_config_json}"         # Modify the camouflage path of the v2ray client configuration file
-    sed -i "60c \ \ \ \ path: ${camouflage_path}" "${v2ray_client_config_yaml}"          # Modify the camouflage path of the v2ray client configuration file
+    sed -i "59c \ \ \ \ path: ${camouflage_path}" "${v2ray_client_config_yaml}"          # Modify the camouflage path of the v2ray client configuration file
     judge "V2ray camouflage path modified"
 }
 
